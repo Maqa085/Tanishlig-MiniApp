@@ -3,226 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tanışlıq Botu - Premium</title>
+    <title>Tanışlıq Botu</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --bg-dark: #000000;
-            --card-bg: #111111;
-            --main-yellow: #f5c518;
-            --text-gray: #888888;
-            --text-white: #ffffff;
-        }
+        :root { --main-yellow: #f5c518; --bg-dark: #000; --card-bg: #111; }
+        body { font-family: sans-serif; background: var(--bg-dark); color: white; margin: 0; overflow: hidden; }
+        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active { display: block; }
 
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-white);
-            overflow: hidden;
-        }
+        /* Profil Kartı Stil */
+        .profile-header-card { background: var(--card-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border: 1px solid #222; }
+        .profile-header-card img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--main-yellow); }
+        .stat-badge { background: #1a1a1a; padding: 5px 10px; border-radius: 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
 
-        /* Navigasiya Menyu */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            background: #0a0a0a;
-            padding: 12px 0;
-            border-top: 1px solid #222;
-            z-index: 1000;
-        }
-        .nav-item { text-align: center; font-size: 11px; cursor: pointer; color: var(--text-gray); flex: 1; transition: 0.3s; }
+        /* Mesaj Yazma Çubuğu (Şəkildəki kimi) */
+        .chat-container { display: flex; flex-direction: column; height: 80vh; }
+        .messages-area { flex: 1; overflow-y: auto; padding: 10px; }
+        .chat-input-area { position: fixed; bottom: 80px; left: 5%; width: 90%; background: #1a1a1a; border-radius: 30px; display: flex; align-items: center; padding: 5px 15px; border: 1px solid #333; }
+        .chat-input-area input { flex: 1; background: transparent; border: none; color: white; padding: 12px; outline: none; font-size: 15px; }
+        .send-btn { background: var(--main-yellow); color: black; width: 40px; height: 40px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+        /* Navigasiya */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #0a0a0a; padding: 15px 0; border-top: 1px solid #222; }
+        .nav-item { flex: 1; text-align: center; color: #555; font-size: 11px; }
         .nav-item.active { color: var(--main-yellow); }
-        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+        .nav-item i { display: block; font-size: 20px; }
 
-        /* Səhifələr */
-        .page { display: none; height: calc(100vh - 70px); overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .page.active { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Modern Profil Kartı (Şəkildəki kimi) */
-        .profile-header-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .profile-header-card img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid var(--main-yellow);
-        }
-        .user-info h2 { margin: 0; font-size: 20px; text-transform: uppercase; }
-        .user-info p { margin: 5px 0; color: var(--text-gray); font-size: 13px; }
-        .stats-row { display: flex; gap: 10px; margin-top: 10px; }
-        .stat-badge {
-            background: #1a1a1a;
-            padding: 5px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .crystal-badge { border: 1px solid var(--main-yellow); color: var(--main-yellow); }
-
-        /* Aktivləşdirmə Forması */
-        #activation-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        input, textarea {
-            width: 100%;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        /* Çat İnterfeysi (Şəkildəki kimi) */
-        .chat-header {
-            background: var(--card-bg);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid #222;
-        }
-        .chat-header img { width: 40px; height: 40px; border-radius: 50%; }
-        .chat-footer {
-            position: fixed;
-            bottom: 75px;
-            width: 90%;
-            left: 5%;
-            background: #1a1a1a;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            padding: 5px 15px;
-        }
-        .chat-input { flex: 1; background: transparent; border: none; padding: 10px; color: white; outline: none; }
-        .send-btn {
-            background: var(--main-yellow);
-            color: black;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: none;
-        }
-
-        /* Ümumi Düymə */
-        .main-btn {
-            background: var(--main-yellow);
-            color: black;
-            width: 100%;
-            padding: 15px;
-            border-radius: 15px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-        }
+        /* Kristal Al Səhifəsi */
+        #stars-page { text-align: center; }
+        .stars-input { background: #1a1a1a; border: 1px solid var(--main-yellow); color: white; padding: 15px; border-radius: 15px; width: 80%; font-size: 18px; margin: 20px 0; }
+        .main-btn { background: var(--main-yellow); color: black; border: none; padding: 15px; border-radius: 15px; width: 100%; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <div id="activation-overlay" style="display: none;">
-        <i class="fas fa-rocket" style="font-size: 50px; color: var(--main-yellow); margin-bottom: 20px;"></i>
-        <h2>Profili Aktivləşdir</h2>
-        <p style="color: var(--text-gray);">Digər insanların sizi görməsi üçün məlumatları doldurun.</p>
-        <input type="number" id="reg-age" placeholder="Yaşınız">
-        <textarea id="reg-bio" placeholder="Haqqınızda (məs: Hobbiləriniz...)" rows="3"></textarea>
-        <button class="main-btn" onclick="activateProfile()">Təsdiqlə</button>
-    </div>
-
     <div id="home" class="page active">
-        <div style="text-align:center; padding: 20px 0;">
-            <i class="fas fa-shield-halved" style="font-size: 40px; color: var(--main-yellow);"></i>
-            <h2>İstifadə Qaydaları</h2>
-        </div>
-        <div style="background: var(--card-bg); padding: 15px; border-radius: 15px; line-height: 1.6;">
-            <p>🌟 <b>Real İnsanlar:</b> Burada yalnız bu Mini App-ə giriş edən real Telegram istifadəçiləri görünür.</p>
-            <p>💎 <b>Stars Sistemi:</b> Kristal almaq üçün rəsmi Telegram Stars istifadə olunur.</p>
-            <p>⚖️ <b>Qaydalar:</b> Təhqir və nalayiq şəkillər dərhal bloklanma səbəbidir.</p>
-            <p>🤝 <b>Tanışlıq:</b> Bəyəndiyiniz şəxsə bildiriş göndərilir, o da sizi bəyənsə çat açılır.</p>
-        </div>
+        <h2 style="color: var(--main-yellow);">📜 Qaydalar</h2>
+        <p>1. Etik qaydalara riayət edin.</p>
+        <p>2. Mesaj göndərmək 1 💎 tələb edir.</p>
+        <p>3. Stars vasitəsilə kristal ala bilərsiniz.</p>
     </div>
 
     <div id="discover" class="page">
-        <div style="height: 400px; background: #222; border-radius: 20px; overflow: hidden; position: relative;">
-            <img src="https://via.placeholder.com/400x500" style="width:100%; height:100%; object-fit:cover;">
-            <div style="position:absolute; bottom:0; padding:20px; background:linear-gradient(transparent, black); width:100%;">
-                <h3>Murad, 24</h3>
-                <p>Bakı, Proqramçı 💻</p>
+        <div id="user-card" style="background: var(--card-bg); border-radius: 20px; overflow: hidden;">
+            <img id="disc-photo" src="https://via.placeholder.com/400x400" style="width:100%;">
+            <div style="padding:15px;">
+                <h3 id="disc-name">Yüklenir...</h3>
+                <p id="disc-bio" style="color:#888;"></p>
+                <div style="display:flex; gap:10px;">
+                    <button class="main-btn" onclick="nextUser()" style="background:#333; color:white;">⏭️ Keç</button>
+                    <button class="main-btn" onclick="sendAction('like')">❤️‍🔥 Bəyən</button>
+                    <button class="main-btn" onclick="openChatView()" style="background:#0088cc; color:white;">💬 Mesaj</button>
+                </div>
             </div>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="main-btn" style="background:#333; color:white;" onclick="nextUser()">⏭️ Keç</button>
-            <button class="main-btn" onclick="action('like')">❤️‍🔥 Bəyən</button>
         </div>
     </div>
 
     <div id="chat" class="page" style="padding:0;">
-        <div class="chat-header">
-            <img src="https://via.placeholder.com/40px">
-            <div>
-                <b id="chat-with-name">Mədinə</b><br>
-                <small style="color:var(--main-yellow)">onlayn</small>
-            </div>
+        <div style="background:#111; padding:15px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #222;">
+            <img id="chat-user-img" src="https://via.placeholder.com/40" style="border-radius:50%;">
+            <b id="chat-user-name">Söhbət</b>
         </div>
-        <div id="messages" style="padding:20px; height: 60vh;">
-            </div>
-        <div class="chat-footer">
-            <i class="far fa-smile" style="color:var(--text-gray)"></i>
-            <input type="text" class="chat-input" placeholder="Mesaj yazın...">
-            <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+        <div class="messages-area" id="msg-box">
+            <p style="text-align:center; color:#555; margin-top:20px;">Söhbətə başlamaq üçün mesaj yazın...</p>
+        </div>
+        <div class="chat-input-area">
+            <i class="far fa-smile" style="color:#555;"></i>
+            <input type="text" id="chat-input" placeholder="Mesaj yazın...">
+            <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
     <div id="profile" class="page">
         <div class="profile-header-card">
-            <img id="my-photo" src="https://via.placeholder.com/80">
+            <img id="my-photo" src="">
             <div class="user-info">
                 <h2 id="my-name">MAGA</h2>
-                <p id="my-id">ID: 00000000</p>
-                <div class="stats-row">
-                    <div class="stat-badge"><i class="fas fa-coins" style="color:orange"></i> 1.258.209</div>
-                    <div class="stat-badge crystal-badge"><i class="fas fa-gem"></i> <span id="my-crystals">15</span></div>
-                </div>
+                <p id="my-id">ID: </p>
+                <div class="stat-badge"><i class="fas fa-gem" style="color:var(--main-yellow)"></i> <span id="my-crystals">5</span></div>
             </div>
         </div>
+        <button class="main-btn" onclick="openStars()">💎 Kristal Al (Stars ⭐)</button>
+    </div>
 
-        <div style="background: var(--card-bg); border-radius: 15px; padding: 10px;">
-            <div style="display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222;">
-                <span><i class="fas fa-bell" style="color:var(--main-yellow)"></i> Enerji Bildirişi</span>
-                <input type="checkbox" checked>
-            </div>
-            <div style="padding: 15px;" onclick="showStarsPayment()">
-                <span><i class="fas fa-star" style="color:var(--main-yellow)"></i> Kristal Al (Stars ⭐)</span>
-            </div>
-        </div>
+    <div id="stars-page" class="page">
+        <h3 style="color:var(--main-yellow)">💎 Kristal Al</h3>
+        <p>10 Kristal = 100 Stars ⭐</p>
+        <input type="number" id="stars-amount" class="stars-input" placeholder="Miqdar (məs: 10)">
+        <button class="main-btn" onclick="buyStars()">Al</button>
+        <p onclick="showPage('profile')" style="margin-top:20px; color:#555;">Geri qayıt</p>
     </div>
 
     <div class="bottom-nav">
@@ -235,55 +105,48 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.backgroundColor = "#000000";
-        tg.headerColor = "#000000";
+        let currentTargetId = null;
 
-        // İstifadəçi məlumatlarını yükləyirik
+        // Telegramdan istifadəçi məlumatları
         const user = tg.initDataUnsafe.user;
         if(user) {
             document.getElementById('my-name').innerText = user.first_name;
             document.getElementById('my-id').innerText = "ID: " + user.id;
-            if(user.photo_url) document.getElementById('my-photo').src = user.photo_url;
-        }
-
-        // Qeydiyyat yoxlanışı (Simulyasiya)
-        let isActivated = false; 
-        if(!isActivated) {
-            document.getElementById('activation-overlay').style.display = 'flex';
-        }
-
-        function activateProfile() {
-            let age = document.getElementById('reg-age').value;
-            let bio = document.getElementById('reg-bio').value;
-            if(age > 17 && bio.length > 5) {
-                document.getElementById('activation-overlay').style.display = 'none';
-                tg.showPopup({ message: "Profiliniz Aktivləşdirildi! 🎉" });
-                // Bota məlumat göndər
-                tg.sendData(JSON.stringify({action: "register", age: age, bio: bio}));
-            } else {
-                alert("Zəhmət olmasa məlumatları tam doldurun (Yaş 18+).");
-            }
+            document.getElementById('my-photo').src = user.photo_url || 'https://via.placeholder.com/80';
         }
 
         function showPage(id, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
+            if(el) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            }
         }
 
-        function showStarsPayment() {
-            // Telegram Stars ödəniş pəncərəsini açmaq üçün bota komanda göndəririk
-            tg.showPopup({
-                title: 'Kristal Al',
-                message: '10 Kristal = 100 Stars ⭐\nSatın almaq istəyirsiniz?',
-                buttons: [{type: 'ok', text: 'Al'}, {type: 'cancel', text: 'Ləğv et'}]
-            }, (btn) => {
-                if(btn === 'ok') {
-                    tg.sendData(JSON.stringify({action: "buy_with_stars", amount: 10}));
-                }
-            });
+        function sendMessage() {
+            let text = document.getElementById('chat-input').value;
+            if(text.trim() != "") {
+                // Bota göndər
+                tg.sendData(JSON.stringify({
+                    action: "send_msg",
+                    text: text,
+                    to_id: currentTargetId || "8055987590" // Nümunə ID
+                }));
+                document.getElementById('chat-input').value = "";
+                tg.close(); // Telegram məhdudiyyətinə görə sendData sonrası bağlanır
+            }
         }
+
+        function openStars() { showPage('stars-page'); }
+
+        function buyStars() {
+            let qty = document.getElementById('stars-amount').value;
+            tg.sendData(JSON.stringify({action: "buy_stars", amount: qty}));
+        }
+
+        function openChatView() { showPage('chat'); }
     </script>
 </body>
-</html>
+                        </html>
+                                      
