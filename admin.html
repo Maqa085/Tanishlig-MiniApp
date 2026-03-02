@@ -4,106 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins;}
-
-body{
-    background:linear-gradient(135deg,#005fa3,#00c6ff);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    color:white;
-}
-
-.glass{
-    background:rgba(255,255,255,0.15);
-    backdrop-filter:blur(20px);
-    padding:30px;
-    border-radius:20px;
-    width:400px;
-    box-shadow:0 0 40px rgba(0,0,0,0.2);
-    animation:fade 0.8s ease;
-}
-
-input, textarea{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-    border:none;
-    border-radius:8px;
-}
-
-button{
-    width:100%;
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    background:#0077cc;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:5px;
-    transition:0.3s;
-}
-
-button:hover{
-    background:#003f7f;
-}
-
-.list{
-    margin-top:20px;
-    max-height:150px;
-    overflow:auto;
-    font-size:14px;
-}
-
-.item{
-    background:rgba(255,255,255,0.2);
-    padding:8px;
-    margin-top:5px;
-    border-radius:8px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.delete{
-    background:red;
-    padding:5px 8px;
-    font-size:12px;
-}
-
-@keyframes fade{
-    from{opacity:0;transform:scale(0.9);}
-    to{opacity:1;transform:scale(1);}
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="glass">
+<header>
+    <h1>🔐 Admin Panel</h1>
+</header>
+
+<div class="container">
 
 <div id="loginPanel">
-    <h2>🔐 Admin Giriş</h2>
     <input type="text" id="username" placeholder="İstifadəçi adı">
     <input type="password" id="password" placeholder="Şifrə">
     <button onclick="login()">Daxil ol</button>
-    <p id="error" style="color:yellow;"></p>
+    <p id="error"></p>
 </div>
 
 <div id="adminPanel" style="display:none;">
-    <h2>🛠 Admin Panel</h2>
-    <input type="text" id="title" placeholder="Elan başlığı">
-    <textarea id="content" placeholder="Elan mətni"></textarea>
-    <button onclick="addAnnouncement()">➕ Elan əlavə et</button>
-    <button onclick="logout()">🚪 Çıxış</button>
+    <h2>➕ Yeni Elan</h2>
+    <input type="text" id="title" placeholder="Başlıq">
+    <textarea id="content" placeholder="Mətn"></textarea>
+    <input type="file" id="image">
+    <button onclick="addAnnouncement()">Əlavə et</button>
 
-    <div class="list" id="announcementList"></div>
+    <h3>📊 Statistik</h3>
+    <div id="stats"></div>
+
+    <h3>🗑 Elanlar</h3>
+    <div id="list"></div>
 </div>
 
 </div>
@@ -113,60 +43,73 @@ function login(){
     if(username.value==="admin" && password.value==="123"){
         loginPanel.style.display="none";
         adminPanel.style.display="block";
-        loadList();
+        loadAdmin();
     } else {
         error.innerText="❌ Yanlış məlumat!";
     }
 }
 
-function logout(){
-    adminPanel.style.display="none";
-    loginPanel.style.display="block";
+function addAnnouncement(){
+    let reader=new FileReader();
+    let file=image.files[0];
+
+    if(file){
+        reader.onload=function(){
+            saveAnnouncement(reader.result);
+        }
+        reader.readAsDataURL(file);
+    }else{
+        saveAnnouncement("");
+    }
 }
 
-function addAnnouncement(){
-    if(title.value===""||content.value===""){
-        alert("Xanaları doldurun!");
-        return;
-    }
+function saveAnnouncement(img){
+    let data=JSON.parse(localStorage.getItem("announcements"))||[];
 
-    let announcements=JSON.parse(localStorage.getItem("announcements"))||[];
-
-    announcements.push({
+    data.push({
         title:title.value,
         content:content.value,
-        date:new Date().toLocaleString()
+        image:img,
+        date:new Date().toLocaleString(),
+        comments:[]
     });
 
-    localStorage.setItem("announcements",JSON.stringify(announcements));
-
-    title.value="";
-    content.value="";
-    loadList();
-    alert("✅ Əlavə edildi!");
+    localStorage.setItem("announcements",JSON.stringify(data));
+    alert("✅ Elan əlavə edildi!");
+    loadAdmin();
 }
 
-function loadList(){
-    let announcements=JSON.parse(localStorage.getItem("announcements"))||[];
-    let list=document.getElementById("announcementList");
-    list.innerHTML="";
+function loadAdmin(){
+    let data=JSON.parse(localStorage.getItem("announcements"))||[];
+    let list=document.getElementById("list");
+    let stats=document.getElementById("stats");
 
-    announcements.forEach((item,index)=>{
+    list.innerHTML="";
+    let totalComments=0;
+
+    data.forEach((item,index)=>{
+        totalComments+=item.comments.length;
+
         let div=document.createElement("div");
-        div.className="item";
+        div.className="card";
         div.innerHTML=`
             ${item.title}
-            <button class="delete" onclick="deleteAnnouncement(${index})">Sil</button>
+            <button onclick="deleteAnnouncement(${index})">Sil</button>
         `;
         list.appendChild(div);
     });
+
+    stats.innerHTML=`
+        📢 Elan sayı: ${data.length} <br>
+        💬 Şərh sayı: ${totalComments}
+    `;
 }
 
 function deleteAnnouncement(index){
-    let announcements=JSON.parse(localStorage.getItem("announcements"))||[];
-    announcements.splice(index,1);
-    localStorage.setItem("announcements",JSON.stringify(announcements));
-    loadList();
+    let data=JSON.parse(localStorage.getItem("announcements"))||[];
+    data.splice(index,1);
+    localStorage.setItem("announcements",JSON.stringify(data));
+    loadAdmin();
 }
 </script>
 
