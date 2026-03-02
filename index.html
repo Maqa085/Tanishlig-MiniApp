@@ -3,40 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Məktəb Saytı</title>
+<title>Mavi Ağ Məktəb</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
 
 <style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins;}
+
 body{
-    margin:0;
-    font-family: Arial;
-    background:#f0f8ff;
-}
-header{
-    background:#0077cc;
+    background:linear-gradient(135deg,#0077cc,#00c6ff);
     color:white;
-    padding:20px;
-    text-align:center;
 }
+
+header{
+    text-align:center;
+    padding:60px 20px;
+    animation:fadeDown 1s ease;
+}
+
+header h1{
+    font-size:40px;
+}
+
 nav{
-    background:#005fa3;
-    padding:10px;
     text-align:center;
+    padding:15px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(10px);
 }
+
 nav a{
     color:white;
     margin:15px;
     text-decoration:none;
-    font-weight:bold;
+    font-weight:600;
+    transition:0.3s;
 }
+
+nav a:hover{
+    color:#ffd700;
+}
+
 .container{
-    padding:20px;
+    max-width:1000px;
+    margin:auto;
+    padding:30px;
 }
+
 .card{
-    background:white;
-    padding:15px;
-    margin-top:10px;
-    border-left:5px solid #0077cc;
-    border-radius:5px;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+    padding:20px;
+    margin-top:20px;
+    border-radius:15px;
+    animation:fadeUp 0.6s ease;
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:scale(1.03);
+}
+
+.date{
+    font-size:12px;
+    opacity:0.8;
+}
+
+footer{
+    text-align:center;
+    padding:20px;
+    margin-top:40px;
+    background:rgba(0,0,0,0.2);
+}
+
+@keyframes fadeDown{
+    from{opacity:0;transform:translateY(-30px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes fadeUp{
+    from{opacity:0;transform:translateY(30px);}
+    to{opacity:1;transform:translateY(0);}
 }
 </style>
 </head>
@@ -45,29 +92,37 @@ nav a{
 
 <header>
     <h1>🏫 Mavi Ağ Məktəb</h1>
-    <p>📚 Elm və İnkişaf Mərkəzi</p>
+    <p>📚 Gələcəyin Təhsil Mərkəzi</p>
 </header>
 
 <nav>
     <a href="index.html">🏠 Ana səhifə</a>
-    <a href="admin.html">🔐 Admin</a>
+    <a href="admin.html">🔐 Admin Panel</a>
 </nav>
 
 <div class="container">
-    <h2>📢 Elanlar</h2>
+    <h2>📢 Son Elanlar</h2>
     <div id="announcements"></div>
 </div>
+
+<footer>
+    © 2026 Mavi Ağ Məktəb | 💙 Təhsil Gücdür
+</footer>
 
 <script>
 function loadAnnouncements(){
     let announcements = JSON.parse(localStorage.getItem("announcements")) || [];
     let container = document.getElementById("announcements");
-    container.innerHTML = "";
+    container.innerHTML="";
 
-    announcements.forEach(item => {
-        let div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = "<h4>📌 " + item.title + "</h4><p>" + item.content + "</p>";
+    announcements.reverse().forEach(item=>{
+        let div=document.createElement("div");
+        div.className="card";
+        div.innerHTML=`
+            <h3>📌 ${item.title}</h3>
+            <p>${item.content}</p>
+            <div class="date">🕒 ${item.date}</div>
+        `;
         container.appendChild(div);
     });
 }
