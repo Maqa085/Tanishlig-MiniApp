@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background:#e6f2ff;
+}
+header{
+    background:#0077cc;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
+.container{
+    padding:20px;
+    max-width:500px;
+    margin:auto;
+}
+input, textarea{
+    width:100%;
+    padding:8px;
+    margin:8px 0;
+}
+button{
+    background:#0077cc;
+    color:white;
+    border:none;
+    padding:10px;
+    cursor:pointer;
+    border-radius:5px;
+}
+button:hover{
+    background:#005fa3;
+}
+#adminPanel{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔐 Admin Panel</h1>
+</header>
+
+<div class="container">
+
+<div id="loginPanel">
+    <h3>🔑 Giriş</h3>
+    <input type="text" id="username" placeholder="İstifadəçi adı">
+    <input type="password" id="password" placeholder="Şifrə">
+    <button onclick="login()">Daxil ol</button>
+    <p id="error" style="color:red;"></p>
+</div>
+
+<div id="adminPanel">
+    <h3>➕ Elan əlavə et</h3>
+    <input type="text" id="title" placeholder="Başlıq">
+    <textarea id="content" placeholder="Mətn"></textarea>
+    <button onclick="addAnnouncement()">Elan əlavə et</button>
+    <button onclick="logout()">Çıxış</button>
+</div>
+
+</div>
+
+<script>
+function login(){
+    let user = document.getElementById("username").value;
+    let pass = document.getElementById("password").value;
+
+    if(user === "admin" && pass === "123"){
+        document.getElementById("loginPanel").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+    } else {
+        document.getElementById("error").innerText = "❌ Yanlış məlumat!";
+    }
+}
+
+function logout(){
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("loginPanel").style.display = "block";
+}
+
+function addAnnouncement(){
+    let title = document.getElementById("title").value;
+    let content = document.getElementById("content").value;
+
+    if(title === "" || content === ""){
+        alert("⚠️ Xanaları doldurun!");
+        return;
+    }
+
+    let announcements = JSON.parse(localStorage.getItem("announcements")) || [];
+    announcements.push({title, content});
+    localStorage.setItem("announcements", JSON.stringify(announcements));
+
+    alert("✅ Elan əlavə edildi!");
+    document.getElementById("title").value = "";
+    document.getElementById("content").value = "";
+}
+</script>
+
+</body>
+</html>
